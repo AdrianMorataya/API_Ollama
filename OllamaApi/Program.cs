@@ -1,5 +1,12 @@
 using Microsoft.OpenApi.Models;
-using OllamaApi.Services;
+using ChatAPI.Services;
+using ChatAPI.Data;
+using ChatAPI.Models;
+using ChatAPI.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,10 +24,69 @@ builder.Services.AddSwaggerGen(c =>
             Email = "adrianmorataya01@gmail.com"
         }
     });
+
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Ingrese 'Bearer {token}' para autenticar."
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
 });
 
 builder.Services.AddHttpClient<OllamaService>();
+
 builder.Services.AddControllers();
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseMySql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        new MySqlServerVersion(new Version(8, 0, 32))
+    )
+);
+
+builder.Services.AddSingleton<JwtService>();
+
+var jwtSecret = builder.Configuration["JwtSettings:Secret"];
+var key = Encoding.UTF8.GetBytes(jwtSecret);
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+        ValidAudience = builder.Configuration["JwtSettings:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(key)
+    };
+});
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -35,5 +101,39 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    context.Database.EnsureCreated();
+
+    if (!context.Users.Any(u => u.Role == "Admin"))
+    {
+        var admin = new User
+        {
+            Username = "Administrador",
+            Email = "admin@ollama.com",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
+            Role = "Admin",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        context.Users.Add(admin);
+        context.SaveChanges();
+
+        Console.WriteLine("Admin creado por defecto");
+    }
+    else
+    {
+        Console.WriteLine("El admin ya existe, no se creó uno nuevo.");
+    }
+}
+
 app.Run();

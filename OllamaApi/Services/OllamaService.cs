@@ -1,9 +1,9 @@
 using System.Text;
 using System.Text.Json;
-using OllamaApi.DTOs;
-using OllamaApi.Models;
+using ChatAPI.DTOs;
+using ChatAPI.Models;
 
-namespace OllamaApi.Services
+namespace ChatAPI.Services
 {
     public class OllamaService
     {

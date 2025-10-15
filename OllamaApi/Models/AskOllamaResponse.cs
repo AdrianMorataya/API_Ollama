@@ -1,4 +1,4 @@
-namespace OllamaApi.Models
+namespace ChatAPI.Models
 {
     public class AskOllamaResponse
     {
