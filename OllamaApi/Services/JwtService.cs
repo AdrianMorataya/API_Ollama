@@ -33,7 +33,7 @@ namespace ChatAPI.Services
                 issuer: _configuration["JwtSettings:Issuer"],
                 audience: _configuration["JwtSettings:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(double.Parse(_configuration["JwtSettings:ExpiryMonths"])),
+                expires: DateTime.UtcNow.AddMonths(int.Parse(_configuration["JwtSettings:ExpiryMonths"])),
                 signingCredentials: creds
             );
 
