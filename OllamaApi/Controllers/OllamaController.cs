@@ -33,16 +33,19 @@ namespace OllamaApi.Controllers
 
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-            var history = new PromptsHistory
+            if (!string.IsNullOrWhiteSpace(response.Response))
             {
-                UserId = userId,
-                Prompt = request.Prompt,
-                Response = response.Response,
-                CreatedAt = DateTime.UtcNow
-            };
+                var history = new PromptsHistory
+                {
+                    UserId = userId,
+                    Prompt = request.Prompt,
+                    Response = response.Response,
+                    CreatedAt = DateTime.UtcNow
+                };
 
-            _context.PromptsHistory.Add(history);
-            await _context.SaveChangesAsync();
+                _context.PromptsHistory.Add(history);
+                await _context.SaveChangesAsync();
+            }
 
             return Ok(response);
         }

@@ -5,5 +5,7 @@ namespace ChatAPI.DTOs
         public string Prompt { get; set; } = string.Empty;
 
         public string Model { get; set; } = "llama3";
+
+        public bool NewChat { get; set; } = false;
     }
 }
