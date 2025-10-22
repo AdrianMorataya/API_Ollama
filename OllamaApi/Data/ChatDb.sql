@@ -26,3 +26,5 @@ CREATE INDEX idx_userid ON PromptsHistory(UserId);
 CREATE INDEX idx_createdat ON PromptsHistory(CreatedAt);
 
 select * from users;
+
+select * from PromptsHistory;

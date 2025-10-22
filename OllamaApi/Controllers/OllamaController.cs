@@ -51,6 +51,41 @@ namespace OllamaApi.Controllers
         }
 
         [Authorize]
+        [HttpPost("ask-vision")]
+        public async Task<ActionResult<AskOllamaResponse>> AskVision([FromForm] AskVisionForm request)
+        {
+            if (request.Image == null || request.Image.Length == 0)
+                return BadRequest("Debes enviar una imagen.");
+
+            if (string.IsNullOrWhiteSpace(request.Prompt))
+                return BadRequest("El prompt es obligatorio.");
+
+            if (string.IsNullOrWhiteSpace(request.Model))
+                request.Model = "gemma3";
+
+            var response = await _ollamaService.AskVisionAsync(request);
+
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            if (!string.IsNullOrWhiteSpace(response.Response))
+            {
+                var history = new PromptsHistory
+                {
+                    UserId = userId,
+                    Prompt = request.Prompt,
+                    Response = response.Response,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _context.PromptsHistory.Add(history);
+                await _context.SaveChangesAsync();
+            }
+
+            Console.WriteLine($"Imagen recibida: {request.Image.FileName}, {request.Image.Length} bytes");
+            return Ok(response);
+        }
+
+        [Authorize]
         [HttpGet("history")]
         public async Task<ActionResult<IEnumerable<PromptsHistory>>> GetHistory()
         {

@@ -7,5 +7,7 @@ namespace ChatAPI.DTOs
         public string Model { get; set; } = "llama3";
 
         public bool NewChat { get; set; } = false;
+
+        public List<string>? Images { get; set; }
     }
 }
