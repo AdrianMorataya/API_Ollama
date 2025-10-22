@@ -24,6 +24,9 @@ namespace ChatAPI.Models
         [Required]
         public bool IsActive { get; set; } = true;
 
+        public bool IsEmailConfirmed { get; set; } = false;
+        public string? EmailConfirmationCode { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     }

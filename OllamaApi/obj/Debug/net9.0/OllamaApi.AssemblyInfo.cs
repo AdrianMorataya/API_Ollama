@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("OllamaApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9fec0353f97d3a17806e30d48e7f20e418dd2b9f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+174ba0fecdc645bd40d7f9c1181c08572ea72ace")]
 [assembly: System.Reflection.AssemblyProductAttribute("OllamaApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("OllamaApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
