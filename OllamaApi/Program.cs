@@ -2,7 +2,6 @@ using Microsoft.OpenApi.Models;
 using ChatAPI.Services;
 using ChatAPI.Data;
 using ChatAPI.Models;
-using ChatAPI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -53,20 +52,25 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddHttpClient<OllamaService>();
-
 builder.Services.AddControllers();
 
+var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING");
+if (string.IsNullOrEmpty(connectionString))
+{
+    throw new Exception("La variable de entorno CONNECTION_STRING no está definida.");
+}
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        new MySqlServerVersion(new Version(8, 0, 32))
-    )
+    options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 32)))
 );
 
-builder.Services.AddSingleton<JwtService>();
-
-var jwtSecret = builder.Configuration["JwtSettings:Secret"];
+var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? "M1_P455w0rd_5up3r_S3cr3t_K3y_2023147";
 var key = Encoding.UTF8.GetBytes(jwtSecret);
+
+var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "ChatAPI";
+var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "ChatAPIUsers";
+
+builder.Services.AddSingleton<JwtService>();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -81,8 +85,8 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
-        ValidAudience = builder.Configuration["JwtSettings:Audience"],
+        ValidIssuer = jwtIssuer,
+        ValidAudience = jwtAudience,
         IssuerSigningKey = new SymmetricSecurityKey(key)
     };
 });
@@ -90,7 +94,6 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: MyAllowSpecificOrigins,
