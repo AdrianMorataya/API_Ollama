@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8
+    container_name: ollama-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: abc123!!
+      MYSQL_DATABASE: ChatDB
+      MYSQL_USER: 2023147_IN5BV
+      MYSQL_PASSWORD: abc123!!
+    ports:
+      - "3307:3306"
+    volumes:
+      - ollama-data:/var/lib/mysql
+    restart: always
+
+  api:
+    build: .
+    container_name: ollama-api
+    ports:
+      - "5000:5000"
+    environment:
+      CONNECTION_STRING: "Server=db;Database=ChatDB;User=2023147_IN5BV;Password=abc123!!;TreatTinyAsBoolean=true;"
+      JWT_SECRET: "M1_P455w0rd_5up3r_S3cr3t_K3y_2023147"
+      JWT_ISSUER: "ChatAPI"
+      JWT_AUDIENCE: "ChatAPIUsers"
+      DOTNET_RUNNING_IN_CONTAINER: "true"
+      DOTNET_URLS: "http://+:5000"
+      DOTNET_ENVIRONMENT: "Development"
+    depends_on:
+      - db
+    restart: always
+
+volumes:
+  ollama-data:
